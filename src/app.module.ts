@@ -17,6 +17,7 @@ import { Slot } from './database/entities/slot.entity';
 import { Chat } from './database/entities/chat.entity';
 import { RescheduleHistory } from './database/entities/reschedule-history.entity';
 import { RecurringAvailability } from './database/entities/recurring-availability.entity';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { RecurringAvailability } from './database/entities/recurring-availabilit
     ProfileModule,
     AvailabilityModule,
     AppointmentModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

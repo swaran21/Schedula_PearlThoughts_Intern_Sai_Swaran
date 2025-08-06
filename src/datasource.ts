@@ -1,22 +1,15 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { config } from 'dotenv';
-// Import ALL your entity classes
-import { User } from './database/entities/user.entity';
-import { Doctor } from './database/entities/doctor.entity';
-import { Patient } from './database/entities/patient.entity';
-import { Appointment } from './database/entities/appointment.entity';
-import { Slot } from './database/entities/slot.entity';
-import { Chat } from './database/entities/chat.entity';
-import { RescheduleHistory } from './database/entities/reschedule-history.entity';
 
+// This loads the .env file for local use and allows Render's variables to be used in production
 config();
 
+// Destructure environment variables
 const { DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE } = process.env;
 
+// Guard clause to ensure all variables are present
 if (!DB_HOST || !DB_PORT || !DB_USERNAME || !DB_PASSWORD || !DB_DATABASE) {
-  throw new Error(
-    'One or more database environment variables are not defined. Please check your .env file.',
-  );
+  throw new Error('One or more database environment variables are not defined.');
 }
 
 export const dataSourceOptions: DataSourceOptions = {
@@ -26,17 +19,22 @@ export const dataSourceOptions: DataSourceOptions = {
   username: DB_USERNAME,
   password: DB_PASSWORD,
   database: DB_DATABASE,
-  // EITHER use glob patterns (as before) OR list entities explicitly.
-  // Using glob patterns is generally more robust as you don't have to remember to update this file.
-  // Let's stick with the glob pattern but ensure it's correct.
-  entities: ['dist/**/*.entity.js'], // This pattern should find all .entity.js files in dist.
+
+  // --- THIS IS THE CRITICAL FIX ---
+  // It enables SSL when NODE_ENV is 'production' (like on Render)
+  ssl: process.env.NODE_ENV === 'production' 
+    ? { rejectUnauthorized: false } 
+    : false,
+  // ------------------------------------
+
+  // This path correctly points to your compiled entity files after `npm run build`
+  entities: ['dist/database/entities/**/*.entity.js'],
   
-  // OR, if you prefer explicit listing (less recommended):
-  // entities: [User, Doctor, Patient, Appointment, Slot, Chat, RescheduleHistory],
-  
+  // This path correctly points to your compiled migration files
   migrations: ['dist/database/migrations/*.js'],
-  synchronize: false,
+  
   migrationsTableName: 'migrations',
+  synchronize: false, // Must be false for migrations to work properly
 };
 
 const dataSource = new DataSource(dataSourceOptions);
